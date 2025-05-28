@@ -57,3 +57,20 @@ create table dim_carrier_staging(
 carrier_code string primary key,
 carrier_name string
 );
+MERGE INTO DIM_AIRPORT AS target
+USING DIM_STAGING_AIRPORT AS source
+ON target.origin_airport_code = source.origin_airport_code
+   AND target.dest_airport_code = source.dest_airport_code
+WHEN NOT MATCHED THEN
+INSERT (origin_airport_code, dest_airport_code)
+VALUES (source.origin_airport_code, source.dest_airport_code);
+SELECT origin_airport_code, dest_airport_code, COUNT(*) as duplicate_count
+FROM DIM_AIRPORT
+GROUP BY origin_airport_code, dest_airport_code
+HAVING COUNT(*) > 1;
+merge into dim_carrier as target
+using dim_carrier_staging as source 
+on target.carrier_code=source.carrier_code
+when not matched then 
+insert (carrier_code,carrier_name)
+values(source.carrier_code,source.carrier_name);
